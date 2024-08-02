@@ -62,7 +62,7 @@ include 'assets/include_menu.php';
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-left">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
+              <li class="breadcrumb-item"><a href="#">Home ccc</a></li>
               <li class="breadcrumb-item active"><?php echo $page_title; ?></li>
             </ol>
           </div><!-- /.col -->

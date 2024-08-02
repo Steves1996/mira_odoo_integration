@@ -600,6 +600,10 @@ class Crud_model_article extends CI_Model
 		
         <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>" . number_format($this->getSoldeBalanceImprimableClient(), 0, ',', ' ') . "</td>
     </tr>";
+
+    
+    //return the solde after calcul *SKT*
+    return number_format($this->getSoldeBalanceImprimableClient(), 0, ',', ' ');
   }
 
 
