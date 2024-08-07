@@ -165,10 +165,13 @@ class Odoo_controller extends CI_Controller
 
     public function AddPaimentFournisseurInOdoo()
     {
-        $id_partner = $_POST["id"];
+        $id_partner = $_POST["id_fournisseur"];
+        $date_debut = $_POST["date_debut"];
+        $date_fin = $_POST["date_fin"];
         $namePartner = $this->Odoo_model->getFournisseurInfos($id_partner);
         $partnerData = $this->getPartnerInOdoo($namePartner);
-        
+        $amount = $this->crud_model_article->getBalanceImprimablePartnerForOdoo($id_partner, $date_debut, $date_fin);
+
         if (is_numeric($partnerData)) {
             $postParameter = array(
                 'fields' => [
@@ -178,10 +181,9 @@ class Odoo_controller extends CI_Controller
                     'payment_type' => 'outbound',
                     'partner_type' => 'supplier',
                     'partner_id' => $partnerData,
-                    'amount' => 2000
+                    'amount' => $amount
                 ]
             );
-            //'amount' => $this->crud_model_article->getBalanceImprimableClient()
             //Odoo
             $dataToSave = json_encode($postParameter);
 
@@ -258,11 +260,16 @@ class Odoo_controller extends CI_Controller
         return $response;
     }
 
-    public function AddPaimentClientInOdoo($name)
+    public function AddPaimentClientInOdoo()
     {
-        $partnerData = $this->getPartnerInOdoo($name);
+        $id_partner = $_POST["id_fournisseur"];
+        $date_debut = $_POST["date_debut"];
+        $date_fin = $_POST["date_fin"];
+        $namePartner = $this->Odoo_model->getClientInfos($id_partner);
+        $partnerData = $this->getPartnerInOdoo($namePartner);
+        $amount = $this->crud_model_article->getBalanceImprimablePartnerForOdoo($id_partner, $date_debut, $date_fin);
 
-        if ($partnerData != null) {
+        if (is_numeric($partnerData)) {
             $postParameter = array(
                 'fields' => [
                     'payment_type', 'partner_id', 'amount', 'partner_type'
@@ -270,11 +277,10 @@ class Odoo_controller extends CI_Controller
                 'values' => [
                     'payment_type' => 'inbound',
                     'partner_type' => 'customer',
-                    'partner_id' => $this->$partnerData->records[0]->id,
-                    'amount' => $this->crud_model_article->getBalanceImprimableClient()
+                    'partner_id' => $partnerData,
+                    'amount' => $amount
                 ]
             );
-
             //Odoo
             $dataToSave = json_encode($postParameter);
 
@@ -292,9 +298,24 @@ class Odoo_controller extends CI_Controller
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 
             $response = curl_exec($ch);
+            $idPayment = $this->jsonDeserialisation($response, 'New resource');
+
+            $moveId = $this->getLastPaymentInOdoo($idPayment);
+            if (isset($moveId)) {
+                $this->updateAccountMoveOdoo($partnerData, 'entry', $moveId);
+            }
+
             curl_close($ch);
 
             return $response;
+        } else {
+            echo "\nnot vendor: $partnerData";
+
+            $addpartner = $this->addPartnerInOdoo($namePartner);
+            if (isset($addpartner)) {
+                $responsePayVendor = $this->AddPaimentFournisseurInOdoo();
+            }
+            return $responsePayVendor;
         }
     }
 }

@@ -606,6 +606,119 @@ class Crud_model_article extends CI_Model
     return number_format($this->getSoldeBalanceImprimableClient(), 0, ',', ' ');
   }
 
+  public function getBalanceImprimablePartnerForOdoo($id_fournisseur, $date_debut, $date_fin)
+  {
+    $id_client = $id_fournisseur;
+    //$date_debut = $_POST["date_debut"];
+    //$date_fin = $_POST["date_fin"];
+    // $date_fin =date("Y-m-d",strtotime($_POST["date_debut"].'- 1 day'));
+
+    $i = 0;
+    $totalAccuseReglement = 0;
+    $totalFactureCLient = 0;
+
+    $totalSolde = 0;
+
+    $totalCredit = 0;
+    $solde = 0;
+
+    $debit3 = 0;
+    $credit3 = 0;
+
+    $RN = $this->repportNouveau($id_client);
+    $compteur = 0;
+
+    $compteur1 = 0;
+
+    while (date("Y-m-d", strtotime($_POST["date_debut"] . '+ ' . $i . ' day')) <= $_POST["date_fin"]) {
+      # code...
+      $date_debut = strval(date("Y-m-d", strtotime($_POST["date_debut"] . '+ ' . $i . ' day')));
+
+
+
+      // $getAllNumFactureClient = $this->db->query('SELECT * from facture_commercial where id_client = '.$id_client.' and date_frais ="'.$date_debut.'"')->result_array();
+      $montant = 0;
+      $total = 0;
+      // foreach ($getAllNumFactureClient as $num_facture) {
+      $getAccuseReglement = $this->db->query('SELECT * from reglement_article where id_fournisseur = ' . $id_client . ' and date_reg ="' . $date_debut . '"')->result_array();
+      if (count($getAccuseReglement) > 0) {
+        # code...
+        foreach ($getAccuseReglement as $reglement) {
+          # code...
+          $totalAccuseReglement = $reglement['montant'] + $totalAccuseReglement;
+          $credit1 = $reglement['montant'];
+          $credit3 = $credit3 + $credit1;
+
+
+          $RN = $RN - $credit1;
+
+          $solde = $RN;
+
+          echo "<tr style='border: 2px solid black;'>
+        <td style='border: 2px solid black;'>" . $date_debut . "</td>
+        <td style='border: 2px solid black;'>" . $reglement['numero'] . "</td>
+        <td style='border: 2px solid black;'>" . $reglement['libelle'] . "</td>
+        <td style='border: 2px solid black;'>" . number_format($credit1, 0, ',', ' ') . "</td>
+        <td style='border: 2px solid black;'>0</td>
+        
+        <td style='border: 2px solid black;'>" . number_format($solde, 0, ',', ' ') . "</td>
+    </tr>";
+
+          $totalSolde = $totalSolde + $solde;
+          $compteur1++;
+        }
+      }
+
+      $getFactureClient = $this->db->query("SELECT * from facture_article where id_fournisseur =" . $id_client . " and date_fact='" . $date_debut . "' group by numero")->result_array();
+      if (count($getFactureClient) > 0) {
+        # code...
+        foreach ($getFactureClient as $factureClient) {
+          $totalFactureCLient = $factureClient['montant'] + $totalFactureCLient;
+          $debit = $factureClient['montant'];
+          $debit3 = $debit + $debit3;
+
+
+          $RN = $RN + $debit;
+
+          $solde = $RN;
+
+          echo "<tr style='border: 2px solid black;'>
+        <td style='border: 2px solid black;'>" . $date_debut . "</td>
+        <td style='border: 2px solid black;'>" . $factureClient['numero'] . "</td>
+        <td style='border: 2px solid black;'>" . $factureClient['libelle'] . "</td>
+
+        <td style='border: 2px solid black;'>0</td>
+        <td style='border: 2px solid black;'>" . number_format($debit, 0, ',', ' ') . "</td>
+
+        <td style='border: 2px solid black;'>" . number_format($solde, 0, ',', ' ') . "</td>
+        </tr>";
+
+          $compteur1++;
+        }
+      }
+
+      $totalDebit = $debit3;
+      $totalCredit = $credit3;
+
+      // $totalSolde = $totalSolde + $solde;
+      $i++;
+      $compteur++;
+    }
+
+    echo "<tr>
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>TOTAUX</td>
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>" . number_format($compteur1, 0, ',', ' ') . "</td>
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'></td>
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>" . number_format($totalCredit, 0, ',', ' ') . "</td>
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>" . number_format($totalDebit, 0, ',', ' ') . "</td>
+		
+        <td style='color:red;font-size: 20px; border: 2px solid black; font-weight: bold;'>" . number_format($this->getSoldeBalanceImprimableClient(), 0, ',', ' ') . "</td>
+    </tr>";
+
+    
+    //return the solde after calcul *SKT*
+    return number_format($this->getSoldeBalanceImprimableClient(), 0, ',', ' ');
+  }
 
 
   public function selectAllArticle()

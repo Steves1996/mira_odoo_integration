@@ -25,4 +25,14 @@ class Odoo_model extends CI_Model
         }
         $this->db->close();
     }
+
+
+    public function getClientInfos($id)
+    {
+        $query = $this->db->query("SELECT * from client where id_client=" . $id . "")->row();
+        if (count($query) > 0) {
+            return $query->nom;
+        }
+        $this->db->close();
+    }
 }

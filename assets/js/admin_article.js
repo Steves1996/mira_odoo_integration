@@ -286,7 +286,7 @@ function getBalanceOfClientOrVendor() {
     $.ajax({
       type: "POST",
       url: base_url + "/Odoo_controller/AddPaimentFournisseurInOdoo",
-      data: { "id": id_fournisseur },
+      data: { "id_fournisseur": id_fournisseur, "date_debut": date_debut, "date_fin": date_fin },
       success: function (data) {
         console.log("data:", data);
       },
